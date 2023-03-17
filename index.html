@@ -105,14 +105,14 @@
           const x = Math.random() < 0.5 ? leftX : rightX;
           mesh.position.x = x;
           // mesh.position.y = Math.random() * 2 - 1;
-          mesh.position.y = 1
+          mesh.position.y = 1.5
           mesh.position.z = Math.random() * 2 - 1.5;
         }
 
-        // Loop the images folder up to jpg 49
-        const imageCount = 50;
+        // Loop the images folder up to the count
+        const imageCount = 108; // Num of images, with zero-indexed names, ex: 50 for 0.jpg through 49.jpg
         const outerX = 1.5;
-        const innerX = 0.75;
+        const innerX = 0.6;
         for (var i = 0; i < imageCount; i++) {
           const image = new THREE.TextureLoader().load('./images/' + i + '.jpg',
             (texture) => {
