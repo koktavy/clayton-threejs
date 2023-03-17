@@ -1,0 +1,169 @@
+<!-- html boilerplate for a threejs scene -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Three.js Boilerplate</title>
+  <style>
+      body { margin: 0; }
+      canvas { width: 100%; height: 100% }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+  <script src="./anime.min.js"></script>
+</head>
+<body>
+  <!-- <script src="js/OrbitControls.js"></script> -->
+    <script>
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const CAMERA_Z = 1.5;
+        camera.position.z = CAMERA_Z;
+        let newPos = new THREE.Vector3(0, 0, CAMERA_Z);
+
+        // Configure renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.colorManagement = true;
+        document.body.appendChild(renderer.domElement);
+
+        // Update the window on resize
+        window.addEventListener('resize', function(){
+          var width = window.innerWidth;
+          var height = window.innerHeight;
+          renderer.setSize(width, height);
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+        });
+
+        // Follow the mouse with some parallax, along a flat plane
+        document.addEventListener('mousemove', function(e){
+          // vars to limit the y range
+          var yMin = -0.5;
+          var x = e.clientX / window.innerWidth;
+          var y = e.clientY / window.innerHeight;
+          newPos.set((x - 0.5) * 1.1, (y - 0.5) * 1.1, CAMERA_Z);
+          camera.position.lerp(newPos, 0.05);
+          // limit the y range
+          if (camera.position.y < yMin) {
+            camera.position.y = yMin;
+          }
+          camera.lookAt(scene.position);
+        });
+
+        // load a GLTF model
+        var loader = new THREE.GLTFLoader();
+        loader.load('./clayton.glb', function ( gltf ) {
+            gltf.scene.position.y = -0.5;
+            scene.add( gltf.scene );
+          },
+          // called while loading is progressing
+          function ( xhr ) {
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+          },
+          // called when loading has errors
+          function ( error ) {
+            console.log( 'An error happened' );
+          }
+        );
+
+        const calcRandomPos = (mesh) => {
+          // Calc a random x pos between -outerX and -innerX, or innerX and outerX
+          const leftX = Math.random() * (-outerX + innerX) - innerX;
+          const rightX = Math.random() * (outerX - innerX) + innerX;
+          // pick between left and right
+          const x = Math.random() < 0.5 ? leftX : rightX;
+          mesh.position.x = x;
+          // mesh.position.y = Math.random() * 2 - 1;
+          mesh.position.y = 1
+          mesh.position.z = Math.random() * 2 - 1.5;
+        }
+
+        // Loop the images folder up to jpg 49
+        const imageCount = 50;
+        const outerX = 1.5;
+        const innerX = 0.75;
+        for (var i = 0; i < imageCount; i++) {
+          const image = new THREE.TextureLoader().load('./images/' + i + '.jpg',
+            (texture) => {
+              // Create a new material with the loaded texture
+              const material = new THREE.MeshBasicMaterial({ map: texture, opacity: 0, transparent: true });
+              // Get the aspect ratio of the image
+              const aspectRatio = texture.image.width / texture.image.height;
+              // Create a plane with the same aspect ratio as the image
+              const planeGeometry = new THREE.PlaneGeometry(1, 1, 1);
+              // Scale the plane to the same aspect ratio as the image
+              planeGeometry.scale(aspectRatio / 3, 1/3, 1/3);
+              // Create a new mesh with the plane geometry and the material
+              const mesh = new THREE.Mesh(planeGeometry, material);
+              calcRandomPos(mesh);
+              // Add the mesh to the scene
+              scene.add(mesh);
+
+              // Animate the mesh to float down from 1 to -1
+              // random delay
+              const delay = Math.random() * 10000;
+              const dur = Math.random() * 15000 + 5000;
+              anime({
+                targets: mesh.position,
+                y: -1,
+                duration: dur,
+                delay: delay,
+                easing: 'linear',
+                autoplay: true,
+                loop: true,
+                loopComplete: () => {
+                  calcRandomPos(mesh);
+                }
+              });
+              // create timeline
+              const timeline = anime.timeline({
+                targets: mesh.material,
+                easing: 'linear',
+                autoplay: true,
+                loop: true,
+              });
+              
+              // add keyframes to the timeline
+              timeline.add({
+                opacity: 1,
+                duration: (750 / 10000) * dur,
+                delay: delay,
+              }).add({
+                opacity: 1,
+                duration: (7750 / 10000) * dur,
+              }).add({
+                opacity: 0,
+                duration: (1500 / 10000) * dur,
+              });
+            },
+            (err) => {
+              console.error('Image load failed with error:', err);
+            }
+          )
+        }
+
+        // lights
+        var ambient = new THREE.AmbientLight( 0x404040 ); // soft white light
+        scene.add( ambient );
+        var pointLeft = new THREE.PointLight( 0xffffff, 1, 100 );
+        pointLeft.position.set( 2, 2, 2 );
+        scene.add( pointLeft );
+        var pointRight = new THREE.PointLight( 0xffffff, 1, 100 );
+        pointRight.position.set( -2, -2, -2 );
+        scene.add( pointRight );
+
+        var animate = function () {
+          requestAnimationFrame( animate );
+          // cube.rotation.x += 0.01;
+          // cube.rotation.y += 0.01;
+          renderer.render( scene, camera );
+        };
+        animate();
+        // set background to white
+        renderer.setClearColor( 0xffffff, 1);
+    </script>
+</html>
