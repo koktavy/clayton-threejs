@@ -18,6 +18,8 @@
     <script>
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const Y_MIN = -0.5;
+        const Y_MAX = 0.5;
         const CAMERA_Z = 1.5;
         camera.position.z = CAMERA_Z;
         let newPos = new THREE.Vector3(0, 0, CAMERA_Z);
@@ -39,20 +41,38 @@
           camera.updateProjectionMatrix();
         });
 
-        // Follow the mouse with some parallax, along a flat plane
-        document.addEventListener('mousemove', function(e){
+        // Follow the user position (mouse or touch) with some parallax, along a flat plane
+        function updateCameraPosition(clientX, clientY) {
           // vars to limit the y range
-          var yMin = -0.5;
-          var x = e.clientX / window.innerWidth;
-          var y = e.clientY / window.innerHeight;
+          var x = clientX / window.innerWidth;
+          var y = clientY / window.innerHeight;
           newPos.set((x - 0.5) * 1.1, (y - 0.5) * 1.1, CAMERA_Z);
           camera.position.lerp(newPos, 0.05);
           // limit the y range
-          if (camera.position.y < yMin) {
-            camera.position.y = yMin;
+          if (camera.position.y < Y_MIN) {
+            camera.position.y = Y_MIN;
           }
           camera.lookAt(scene.position);
+        }
+        // Mouse controls for desktop
+        document.addEventListener('mousemove', function (e) {
+          updateCameraPosition(e.clientX, e.clientY);
         });
+        // Touch controls for mobile
+        document.addEventListener('touchmove', function (e) {
+          // Use the first touch event for single-finger controls
+          const touch = e.touches[0];
+          const y = touch.clientY / window.innerHeight;
+          const newY = (y - 0.5) * 1.1;
+
+          // Only prevent scrolling if the camera position is within the allowed range
+          if (newY >= Y_MIN && newY <= Y_MAX) {
+            e.preventDefault();
+            updateCameraPosition(touch.clientX, touch.clientY);
+          } else {
+            console.log('scrolling')
+          }
+        }, { passive: false });
 
         // load a GLTF model
         var loader = new THREE.GLTFLoader();
