@@ -58,19 +58,26 @@
         document.addEventListener('mousemove', function (e) {
           updateCameraPosition(e.clientX, e.clientY);
         });
+        // Flag to track if the user is scrolling beyond the allowed Y range
+        let isScrollingBeyondRange = false;
         // Touch controls for mobile
         document.addEventListener('touchmove', function (e) {
           // Use the first touch event for single-finger controls
           const touch = e.touches[0];
           const y = touch.clientY / window.innerHeight;
           const newY = (y - 0.5) * 1.1;
-
+          // Check if the user is within the allowed Y range
+          const isWithinAllowedRange = newY >= Y_MIN && newY <= Y_MAX;
           // Only prevent scrolling if the camera position is within the allowed range
-          if (newY >= Y_MIN && newY <= Y_MAX) {
+          if (isWithinAllowedRange) {
+            if (isScrollingBeyondRange) {
+              updateCameraPosition(touch.clientX, touch.clientY);
+              isScrollingBeyondRange = false;
+            }
             e.preventDefault();
             updateCameraPosition(touch.clientX, touch.clientY);
           } else {
-            console.log('scrolling')
+            isScrollingBeyondRange = true;
           }
         }, { passive: false });
 
