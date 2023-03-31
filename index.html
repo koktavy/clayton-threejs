@@ -67,18 +67,18 @@
           const y = touch.clientY / window.innerHeight;
           const newY = (y - 0.5) * 1.1;
           // Check if the user is within the allowed Y range
-          const isWithinAllowedRange = newY >= Y_MIN && newY <= Y_MAX;
+          // const isWithinAllowedRange = newY >= Y_MIN && newY <= Y_MAX;
           // Only prevent scrolling if the camera position is within the allowed range
-          if (isWithinAllowedRange) {
-            if (isScrollingBeyondRange) {
+          // if (isWithinAllowedRange) {
+            // if (isScrollingBeyondRange) {
               updateCameraPosition(touch.clientX, touch.clientY);
-              isScrollingBeyondRange = false;
-            }
-            e.preventDefault();
-            updateCameraPosition(touch.clientX, touch.clientY);
-          } else {
-            isScrollingBeyondRange = true;
-          }
+              // isScrollingBeyondRange = false;
+            // }
+            // e.preventDefault();
+            // updateCameraPosition(touch.clientX, touch.clientY);
+          // } else {
+            // isScrollingBeyondRange = true;
+          // }
         }, { passive: false });
 
         // load a GLTF model
