@@ -58,14 +58,12 @@
         document.addEventListener('mousemove', function (e) {
           updateCameraPosition(e.clientX, e.clientY);
         });
-        // Flag to track if the user is scrolling beyond the allowed Y range
-        let isScrollingBeyondRange = false;
         // Touch controls for mobile
         document.addEventListener('touchmove', function (e) {
           // Use the first touch event for single-finger controls
           const touch = e.touches[0];
           updateCameraPosition(touch.clientX, touch.clientY);
-        });
+        }, { passive: true });
 
         // load a GLTF model
         var loader = new THREE.GLTFLoader();
